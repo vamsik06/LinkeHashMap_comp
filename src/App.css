@@ -9,6 +9,12 @@
   text-align: center;
 }
 
+/* Dark mode for #root */
+.dark #root {
+  background-color: #18181b;
+  color: #e5e7eb;
+}
+
 .logo {
   height: 6em;
   padding: 1.5em;
@@ -20,6 +26,11 @@
 }
 .logo.react:hover {
   filter: drop-shadow(0 0 2em #61dafbaa);
+}
+
+/* Dark mode for .logo */
+.dark .logo {
+  filter: drop-shadow(0 0 2em #1e40afaa);
 }
 
 @keyframes logo-spin {
@@ -39,8 +50,23 @@
 
 .card {
   padding: 2em;
+  background: #fff;
+  border-radius: 1em;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+/* Dark mode for .card */
+.dark .card {
+  background: #23272f;
+  color: #e5e7eb;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
 }
 
 .read-the-docs {
   color: #888;
+}
+
+/* Dark mode for .read-the-docs */
+.dark .read-the-docs {
+  color: #aaa;
 }

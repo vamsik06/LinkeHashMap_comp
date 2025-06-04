@@ -41,11 +41,15 @@ const ResetIcon = () => (
   </svg>
 );
 
-const LinkedHashMapVisualizer: React.FC = () => {
+interface LinkedHashMapVisualizerProps {
+  dark: boolean;
+  onToggleTheme: () => void;
+}
+
+const LinkedHashMapVisualizer: React.FC<LinkedHashMapVisualizerProps> = ({ dark, onToggleTheme }) => {
   const [buckets, setBuckets] = useState<Entry[][]>(Array(BUCKET_COUNT).fill(null).map(() => []));
   const [linkedList, setLinkedList] = useState<Entry[]>([]);
   const [message, setMessage] = useState('');
-  const [dark, setDark] = useState(false);
   const [operation, setOperation] = useState<'put' | 'get' | 'remove' | 'containsKey' | 'keySet' | 'values'>('put');
   const [inputKey, setInputKey] = useState('');
   const [inputValue, setInputValue] = useState('');
@@ -72,7 +76,7 @@ const LinkedHashMapVisualizer: React.FC = () => {
   const handlePut = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputKey || inputValue === '') {
-      setMessage('Please enter both key and value.');
+      setMessage('Please Select both key and value.');
       return;
     }
     const keyNum = Number(inputKey);
@@ -254,10 +258,6 @@ const LinkedHashMapVisualizer: React.FC = () => {
     setMessage('');
   };
 
-  const handleToggleTheme = () => {
-    setDark((d) => !d);
-  };
-
   // Helper to highlight node by key and color
   const highlightNode = (key: number, color: 'red' | 'green') => {
     const entry = linkedList.find(e => e.key === key);
@@ -275,22 +275,22 @@ const LinkedHashMapVisualizer: React.FC = () => {
   const presentKeys = linkedList.map(e => e.key);
 
   return (
-    <div className={`fixed inset-0 flex items-center justify-center ${dark ? 'bg-gray-900' : 'bg-gray-100'}` + (dark ? ' dark' : '')}>
+    <div className={`fixed inset-0 flex items-center justify-center${dark ? ' dark' : ''} bg-gray-100 dark:bg-gray-900`}>
       <div
-        className="relative flex flex-col items-center justify-center w-full max-w-[580px] max-h-[650px] min-h-[650px] bg-white dark:bg-gray-900 rounded-xl shadow-xl overflow-auto"
+        className="relative flex flex-col items-center border border-black dark:border-white justify-center w-full max-w-[580px] max-h-[650px] min-h-[650px] bg-white dark:bg-gray-900 rounded-xl shadow-xl overflow-auto"
         style={{ height: 650 }}
       >
         {/* Top right controls */}
         <div className="absolute top-2 right-2 flex gap-3 z-10">
-          <button onClick={handleReset} title="Reset" className="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition">
+          <button onClick={handleReset} title="Reset" className="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-white dark:hover:text-white dark:bg-gray-800 outline-none focus:outline-none transition">
             <ResetIcon />
           </button>
-          <button onClick={handleToggleTheme} title="Toggle dark/light mode" className="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 transition">
+          <button onClick={onToggleTheme} title="Toggle dark/light mode" className="p-2 rounded hover:bg-gray-200 dark:hover:bg-gray-700 dark:text-white dark:hover:text-white dark:bg-gray-800 outline-none focus:outline-none transition">
             {dark ? <SunIcon /> : <MoonIcon />}
           </button>
         </div>
         <div className="w-full flex flex-col items-center justify-center px-2">
-          <h1 className="text-2xl font-bold mb-4 text-center bg-gradient-to-r from-blue-500 bg-clip-text">
+          <h1 className="text-2xl font-bold mb-4 text-center bg-gradient-to-r from-blue-500 bg-clip-text text-gray-900 dark:text-white">
             LinkedHashMap:Visualization
           </h1>
           {/* Operation Selector */}
@@ -314,14 +314,14 @@ const LinkedHashMapVisualizer: React.FC = () => {
           <div className="mb-2 w-full flex flex-col items-center">
             {operation === 'put' && (
               <form className="flex gap-2" onSubmit={handlePut}>
-                <label className="flex items-center gap-1">Key:
-                  <select className="border rounded px-2 py-1" value={inputKey} onChange={e => setInputKey(e.target.value)}>
+                <label className="flex items-center gap-1 text-gray-900 dark:text-white">Key:
+                  <select className="border rounded px-2 py-1 bg-white text-gray-900 dark:bg-gray-800 dark:text-white" value={inputKey} onChange={e => setInputKey(e.target.value)}>
                     <option value="">Select</option>
                     {KEY_OPTIONS.map(k => <option key={k} value={k}>{k}</option>)}
                   </select>
                 </label>
-                <label className="flex items-center gap-1">Value:
-                  <select className="border rounded px-2 py-1" value={inputValue} onChange={e => setInputValue(e.target.value)}>
+                <label className="flex items-center gap-1 text-gray-900 dark:text-white">Value:
+                  <select className="border rounded px-2 py-1 bg-white text-gray-900 dark:bg-gray-800 dark:text-white" value={inputValue} onChange={e => setInputValue(e.target.value)}>
                     <option value="">Select</option>
                     {VALUE_OPTIONS.map(v => <option key={v} value={v}>{v}</option>)}
                   </select>
@@ -331,8 +331,8 @@ const LinkedHashMapVisualizer: React.FC = () => {
             )}
             {operation === 'get' && (
               <form className="flex gap-2" onSubmit={handleGet}>
-                <label className="flex items-center gap-1">Key:
-                  <select className="border rounded px-2 py-1" value={inputKey} onChange={e => setInputKey(e.target.value)}>
+                <label className="flex items-center gap-1 text-gray-900 dark:text-white">Key:
+                  <select className="border rounded px-2 py-1 bg-white text-gray-900 dark:bg-gray-800 dark:text-white" value={inputKey} onChange={e => setInputKey(e.target.value)}>
                     <option value="">Select</option>
                     {presentKeys.map(k => <option key={k} value={k}>{k}</option>)}
                   </select>
@@ -342,8 +342,8 @@ const LinkedHashMapVisualizer: React.FC = () => {
             )}
             {operation === 'remove' && (
               <form className="flex gap-2" onSubmit={handleRemove}>
-                <label className="flex items-center gap-1">Key:
-                  <select className="border rounded px-2 py-1" value={inputKey} onChange={e => setInputKey(e.target.value)}>
+                <label className="flex items-center gap-1 text-gray-900 dark:text-white">Key:
+                  <select className="border rounded px-2 py-1 bg-white text-gray-900 dark:bg-gray-800 dark:text-white" value={inputKey} onChange={e => setInputKey(e.target.value)}>
                     <option value="">Select</option>
                     {presentKeys.map(k => <option key={k} value={k}>{k}</option>)}
                   </select>
@@ -353,8 +353,8 @@ const LinkedHashMapVisualizer: React.FC = () => {
             )}
             {operation === 'containsKey' && (
               <form className="flex gap-2" onSubmit={handleContainsKey}>
-                <label className="flex items-center gap-1">Key:
-                  <select className="border rounded px-2 py-1" value={inputKey} onChange={e => setInputKey(e.target.value)}>
+                <label className="flex items-center gap-1 text-gray-900 dark:text-white">Key:
+                  <select className="border rounded px-2 py-1 bg-white text-gray-900 dark:bg-gray-800 dark:text-white" value={inputKey} onChange={e => setInputKey(e.target.value)}>
                     <option value="">Select</option>
                     {presentKeys.map(k => <option key={k} value={k}>{k}</option>)}
                   </select>
@@ -371,10 +371,10 @@ const LinkedHashMapVisualizer: React.FC = () => {
           </div>
           {/* Status/Message Area */}
           {message && (
-            <p className="mt-2 text-sm text-gray-600 text-center animate-fade-in dark:text-gray-300">{message}</p>
+            <p className="mt-2 text-sm text-gray-600 text-center animate-fade-in dark:text-gray-200">{message}</p>
           )}
           {operation === 'put' && inputKey !== '' && !isNaN(Number(inputKey)) && (
-            <div className="mt-1 text-xs text-blue-700 dark:text-blue-300">
+            <div className="mt-1 text-xs text-blue-700 dark:text-blue-200">
               <div>Sample Hash Function: (sum of digits % 10)</div>
               <div>({inputKey.split('').join(' + ')}) % 10 = {sumOfDigits(Number(inputKey)) % 10}</div>
             </div>
@@ -385,9 +385,9 @@ const LinkedHashMapVisualizer: React.FC = () => {
               {linkedList.length === 0 ? (
                 <div className="flex flex-col items-center">
                   <div className="border border-black dark:border-white rounded w-24 h-12 flex flex-row items-stretch bg-white dark:bg-gray-800">
-                    <div className="flex-1 flex items-center justify-center border-r border-black dark:border-white text-xs">null</div>
-                    <div className="flex-1 flex items-center justify-center bg-blue-50 dark:bg-gray-700 font-bold text-sm border-r border-black dark:border-white text-gray-400"> </div>
-                    <div className="flex-1 flex items-center justify-center text-xs">null</div>
+                  <div className="flex-1 flex items-center justify-center border-r border-black dark:border-white text-xs text-black dark:text-white">null</div>
+                    <div className="flex-1 flex items-center justify-center bg-blue-50 dark:bg-gray-700 font-bold text-sm border-r border-black dark:border-white text-black dark:text-white"> </div>
+                    <div className="flex-1 flex items-center justify-center text-xs text-black dark:text-white">null</div>
                   </div>
                 </div>
               ) : (
@@ -395,40 +395,40 @@ const LinkedHashMapVisualizer: React.FC = () => {
                   <React.Fragment key={entry.id}>
                     <div className="flex flex-col items-center">
                       <div
-                        className={`border border-black dark:border-white rounded min-w-[8rem] h-14 flex flex-row items-stretch bg-white dark:bg-gray-800 ${highlightedId === entry.id && highlightColor === 'yellow' ? 'bg-yellow-200 transition-colors duration-500' : ''} ${highlightedId === entry.id && highlightColor === 'red' ? 'border-4 border-red-500 transition-colors duration-500' : ''} ${highlightedId === entry.id && highlightColor === 'green' ? 'border-4 border-green-500 transition-colors duration-500' : ''}`}
+                        className={`border border-black dark:border-white rounded min-w-[8rem] h-14 flex flex-row items-stretch bg-white dark:bg-gray-800 ${highlightedId === entry.id && highlightColor === 'yellow' ? 'bg-yellow-200 dark:bg-yellow-700 transition-colors duration-500' : ''} ${highlightedId === entry.id && highlightColor === 'red' ? 'border-4 border-red-500 transition-colors duration-500' : ''} ${highlightedId === entry.id && highlightColor === 'green' ? 'border-4 border-green-500 transition-colors duration-500' : ''}`}
                         ref={idx === linkedList.length - 1 ? lastNodeRef : undefined}
                       >
-                        <div className="flex-1 flex items-center justify-center border-r border-black dark:border-white text-xs">
-                          {idx === 0 ? 'null' : 'Prev'}
+                        <div className="flex-1 flex items-center justify-center border-r border-black dark:border-white text-xs text-black dark:text-white">
+                          {idx === 0 ? <span className="text-black dark:text-white">null</span> : 'Prev'}
                         </div>
-                        <div className="flex-1 flex-grow min-w-21 flex items-center justify-center bg-blue-100 dark:bg-blue-900 font-bold text-sm border-r border-black dark:border-white px-4 py-2 break-words">
+                        <div className="flex-1 flex-grow min-w-21 flex items-center justify-center bg-blue-100 dark:bg-blue-900 font-bold text-sm border-r border-black dark:border-white px-4 py-2 break-words text-black dark:text-white">
                           {entry.key} → "{entry.value}"
                         </div>
-                        <div className="flex-1 flex items-center justify-center text-xs">
-                          {idx === linkedList.length - 1 ? 'null' : 'Next'}
+                        <div className="flex-1 flex items-center justify-center text-xs text-black dark:text-white">
+                          {idx === linkedList.length - 1 ? <span className="text-black dark:text-white">null</span> : 'Next'}
                         </div>
                       </div>
                     </div>
                     {idx < linkedList.length - 1 && (
-                      <span className="text-2xl mx-2 text-gray-500 dark:text-gray-300">⇄</span>
+                      <span className="text-2xl mx-2 text-gray-500 dark:text-gray-200">⇄</span>
                     )}
                   </React.Fragment>
                 ))
               )}
             </div>
-            <div className="mt-2 text-sm text-gray-500 dark:text-gray-300">Doubly Linked List (insertion order)</div>
+            <div className="mt-2 text-sm text-gray-500 dark:text-gray-200">Doubly Linked List (insertion order)</div>
           </div>
           {/* Buckets below */}
           <div className="flex flex-row gap-3 justify-center mt-10 w-full flex-wrap">
             {buckets.map((bucket, i) => (
               <div key={i} className="flex flex-col items-center w-[120px] min-h-[80px] p-2 bg-white dark:bg-gray-800 border-2 border-black dark:border-white rounded">
-                  <div className="font-semibold border-b border-black dark:border-white w-full text-center py-1 bg-gray-100 dark:bg-gray-700 text-xs">Bucket {i}</div>
+                  <div className="font-semibold border-b border-black dark:border-white w-full text-center py-1 bg-gray-100 dark:bg-gray-700 text-xs text-gray-900 dark:text-white">Bucket {i}</div>
                 <div className="flex-1 flex flex-col items-center justify-start gap-y-2 w-full mt-2">
                     {bucket.length === 0 ? (
-                      <span className="text-gray-300 dark:text-gray-600 text-xs">(empty)</span>
+                      <span className="text-black-300 dark:text-gray-500 text-xs">(empty)</span>
                     ) : (
                       bucket.map(entry => (
-                      <div key={entry.id} className="border rounded px-2 py-1 bg-blue-100 text-sm truncate w-full">
+                      <div key={entry.id} className="border rounded px-2 py-1 bg-blue-100 dark:bg-blue-900 text-sm truncate w-full text-gray-900 dark:text-white">
                         {entry.key} → "{entry.value}"
                         </div>
                       ))
