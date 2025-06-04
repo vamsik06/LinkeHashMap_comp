@@ -58,6 +58,9 @@ const LinkedHashMapVisualizer: React.FC<LinkedHashMapVisualizerProps> = ({ dark,
   const lastNodeRef = useRef<HTMLDivElement>(null);
   const [highlightedId, setHighlightedId] = useState<string | null>(null);
   const [highlightColor, setHighlightColor] = useState<'yellow' | 'red' | 'green' | null>(null);
+  const [showHashKey, setShowHashKey] = useState<string | null>(null);
+  const [highlightedBucket, setHighlightedBucket] = useState<number | null>(null);
+  const [bucketHighlightColor, setBucketHighlightColor] = useState<'yellow' | 'green' | 'red' | null>(null);
 
   // Auto-scroll and highlight when linkedList changes (put)
   useEffect(() => {
@@ -85,6 +88,12 @@ const LinkedHashMapVisualizer: React.FC<LinkedHashMapVisualizerProps> = ({ dark,
       return;
     }
     const bucketIdx = hash(keyNum);
+    setHighlightedBucket(bucketIdx);
+    setBucketHighlightColor('yellow');
+    setTimeout(() => {
+      setHighlightedBucket(null);
+      setBucketHighlightColor(null);
+    }, 1000);
     let updated = false;
     let newEntryId = keyNum.toString();
     setBuckets(prevBuckets => {
@@ -114,8 +123,9 @@ const LinkedHashMapVisualizer: React.FC<LinkedHashMapVisualizerProps> = ({ dark,
     });
     setMessage(updated
       ? ` put(${keyNum}, "${inputValue}") → updated existing node; value changed to "${inputValue}".`
-      : ` put(${keyNum}, "${inputValue}") → inserted into Bucket ${bucketIdx} and appended to tail.`
+      : ` put(${keyNum}, "${inputValue}") → inserted into Bucket ${bucketIdx}.`
     );
+    setShowHashKey(inputKey);
     setInputKey('');
     setInputValue('');
     setResult(null);
@@ -131,7 +141,7 @@ const LinkedHashMapVisualizer: React.FC<LinkedHashMapVisualizerProps> = ({ dark,
   const handleGet = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputKey) {
-      setMessage('Please enter a key.');
+      setMessage('Please Select a key.');
       return;
     }
     const keyNum = Number(inputKey);
@@ -142,11 +152,17 @@ const LinkedHashMapVisualizer: React.FC<LinkedHashMapVisualizerProps> = ({ dark,
     const bucketIdx = hash(keyNum);
     const entry = buckets[bucketIdx].find(e => e.key === keyNum);
     if (entry) {
+      setHighlightedBucket(bucketIdx);
+      setBucketHighlightColor('green');
+      setTimeout(() => {
+        setHighlightedBucket(null);
+        setBucketHighlightColor(null);
+      }, 1000);
       setMessage(` get(${keyNum}) → "${entry.value}".`);
       setResult(entry.value);
       highlightNode(keyNum, 'green');
     } else {
-      setMessage(`❌ get(${keyNum}) returned null (not present).`);
+      setMessage(` get(${keyNum}) returned null.`);
       setResult(null);
     }
     setInputKey('');
@@ -156,7 +172,7 @@ const LinkedHashMapVisualizer: React.FC<LinkedHashMapVisualizerProps> = ({ dark,
   const handleRemove = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputKey) {
-      setMessage('Please enter a key.');
+      setMessage('Please Select a key.');
       return;
     }
     const keyNum = Number(inputKey);
@@ -165,9 +181,14 @@ const LinkedHashMapVisualizer: React.FC<LinkedHashMapVisualizerProps> = ({ dark,
       return;
     }
     const bucketIdx = hash(keyNum);
-    let found = false;
     const entry = linkedList.find(e => e.key === keyNum);
     if (entry) {
+      setHighlightedBucket(bucketIdx);
+      setBucketHighlightColor('red');
+      setTimeout(() => {
+        setHighlightedBucket(null);
+        setBucketHighlightColor(null);
+      }, 1000);
       setHighlightedId(entry.id);
       setHighlightColor('red');
       setTimeout(() => {
@@ -177,15 +198,11 @@ const LinkedHashMapVisualizer: React.FC<LinkedHashMapVisualizerProps> = ({ dark,
           const entryIdx = bucket.findIndex(e => e.key === keyNum);
           if (entryIdx !== -1) {
             bucket.splice(entryIdx, 1);
-            found = true;
           }
           return newBuckets;
         });
         setLinkedList(prevList => prevList.filter(e => e.key !== keyNum));
-        setMessage(found
-          ? `remove(${keyNum}) → node removed from Bucket ${bucketIdx} and unlinked from list.`
-          : ''
-        );
+        setMessage(`remove(${keyNum}) → node removed from Bucket ${bucketIdx} and unlinked from list.`);
         setInputKey('');
         setResult(null);
         setHighlightedId(null);
@@ -195,21 +212,7 @@ const LinkedHashMapVisualizer: React.FC<LinkedHashMapVisualizerProps> = ({ dark,
         lastNodeRef.current.scrollIntoView({ behavior: 'smooth', inline: 'end' });
       }
     } else {
-      setBuckets(prevBuckets => {
-        const newBuckets = prevBuckets.map(arr => [...arr]);
-        const bucket = newBuckets[bucketIdx];
-        const entryIdx = bucket.findIndex(e => e.key === keyNum);
-        if (entryIdx !== -1) {
-          bucket.splice(entryIdx, 1);
-          found = true;
-        }
-        return newBuckets;
-      });
-      setLinkedList(prevList => prevList.filter(e => e.key !== keyNum));
-      setMessage(found
-        ? `remove(${keyNum}) → node removed from Bucket ${bucketIdx} and unlinked from list.`
-        : ''
-      );
+      setMessage(` remove(${keyNum}) returned null.`);
       setInputKey('');
       setResult(null);
     }
@@ -219,7 +222,7 @@ const LinkedHashMapVisualizer: React.FC<LinkedHashMapVisualizerProps> = ({ dark,
   const handleContainsKey = (e: React.FormEvent) => {
     e.preventDefault();
     if (!inputKey) {
-      setMessage('Please enter a key.');
+      setMessage('Please Select a key.');
       return;
     }
     const keyNum = Number(inputKey);
@@ -229,13 +232,21 @@ const LinkedHashMapVisualizer: React.FC<LinkedHashMapVisualizerProps> = ({ dark,
     }
     const bucketIdx = hash(keyNum);
     const found = buckets[bucketIdx].some(e => e.key === keyNum);
+    if (found) {
+      setHighlightedBucket(bucketIdx);
+      setBucketHighlightColor('green');
+      setTimeout(() => {
+        setHighlightedBucket(null);
+        setBucketHighlightColor(null);
+      }, 1000);
+      highlightNode(keyNum, 'green');
+    }
     setMessage(found
       ? `🔑 containsKey(${keyNum}) → true.`
-      : `❌ containsKey(${keyNum}) → false.`
+      : ` containsKey(${keyNum}) → false.`
     );
     setInputKey('');
     setResult(null);
-    highlightNode(keyNum, 'green');
   };
 
   // KEYSET handler
@@ -256,6 +267,7 @@ const LinkedHashMapVisualizer: React.FC<LinkedHashMapVisualizerProps> = ({ dark,
     setBuckets(Array(BUCKET_COUNT).fill(null).map(() => []));
     setLinkedList([]);
     setMessage('');
+    setShowHashKey(null);
   };
 
   // Helper to highlight node by key and color
@@ -293,6 +305,17 @@ const LinkedHashMapVisualizer: React.FC<LinkedHashMapVisualizerProps> = ({ dark,
           <h1 className="text-2xl font-bold mb-4 text-center bg-gradient-to-r from-blue-500 bg-clip-text text-gray-900 dark:text-white">
             LinkedHashMap:Visualization
           </h1>
+          {/* Hash Function block just below the heading */}
+          {operation === 'put' && (
+            <div className="mb-4 text-base text-blue-700 dark:text-blue-200 text-center">
+              <div><strong>Hash Function:</strong> (sum of digits of key % 10)</div>
+              {(inputKey !== '' && !isNaN(Number(inputKey))) ? (
+                <div>({inputKey.split('').join(' + ')}) % 10 = {sumOfDigits(Number(inputKey)) % 10}</div>
+              ) : (showHashKey && !isNaN(Number(showHashKey)) ? (
+                <div>({showHashKey.split('').join(' + ')}) % 10 = {sumOfDigits(Number(showHashKey)) % 10}</div>
+              ) : null)}
+            </div>
+          )}
           {/* Operation Selector */}
           <div className="mb-4 flex flex-wrap gap-2 justify-center">
             {['put', 'get', 'remove', 'containsKey', 'keySet', 'values'].map(op => (
@@ -315,7 +338,11 @@ const LinkedHashMapVisualizer: React.FC<LinkedHashMapVisualizerProps> = ({ dark,
             {operation === 'put' && (
               <form className="flex gap-2" onSubmit={handlePut}>
                 <label className="flex items-center gap-1 text-gray-900 dark:text-white">Key:
-                  <select className="border rounded px-2 py-1 bg-white text-gray-900 dark:bg-gray-800 dark:text-white" value={inputKey} onChange={e => setInputKey(e.target.value)}>
+                  <select className="border rounded px-2 py-1 bg-white text-gray-900 dark:bg-gray-800 dark:text-white" value={inputKey} onChange={e => {
+                    setInputKey(e.target.value);
+                    setShowHashKey(null);
+                    setMessage('');
+                  }}>
                     <option value="">Select</option>
                     {KEY_OPTIONS.map(k => <option key={k} value={k}>{k}</option>)}
                   </select>
@@ -332,10 +359,13 @@ const LinkedHashMapVisualizer: React.FC<LinkedHashMapVisualizerProps> = ({ dark,
             {operation === 'get' && (
               <form className="flex gap-2" onSubmit={handleGet}>
                 <label className="flex items-center gap-1 text-gray-900 dark:text-white">Key:
-                  <select className="border rounded px-2 py-1 bg-white text-gray-900 dark:bg-gray-800 dark:text-white" value={inputKey} onChange={e => setInputKey(e.target.value)}>
-                    <option value="">Select</option>
-                    {presentKeys.map(k => <option key={k} value={k}>{k}</option>)}
-                  </select>
+                  <input
+                    type="number"
+                    className="border rounded px-2 py-1 bg-white text-gray-900 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    value={inputKey}
+                    onChange={e => setInputKey(e.target.value)}
+                    placeholder="Enter key"
+                  />
                 </label>
                 <button type="submit" className="px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600">get()</button>
               </form>
@@ -343,10 +373,13 @@ const LinkedHashMapVisualizer: React.FC<LinkedHashMapVisualizerProps> = ({ dark,
             {operation === 'remove' && (
               <form className="flex gap-2" onSubmit={handleRemove}>
                 <label className="flex items-center gap-1 text-gray-900 dark:text-white">Key:
-                  <select className="border rounded px-2 py-1 bg-white text-gray-900 dark:bg-gray-800 dark:text-white" value={inputKey} onChange={e => setInputKey(e.target.value)}>
-                    <option value="">Select</option>
-                    {presentKeys.map(k => <option key={k} value={k}>{k}</option>)}
-                  </select>
+                  <input
+                    type="number"
+                    className="border rounded px-2 py-1 bg-white text-gray-900 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    value={inputKey}
+                    onChange={e => setInputKey(e.target.value)}
+                    placeholder="Enter key"
+                  />
                 </label>
                 <button type="submit" className="px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600">remove()</button>
               </form>
@@ -354,10 +387,13 @@ const LinkedHashMapVisualizer: React.FC<LinkedHashMapVisualizerProps> = ({ dark,
             {operation === 'containsKey' && (
               <form className="flex gap-2" onSubmit={handleContainsKey}>
                 <label className="flex items-center gap-1 text-gray-900 dark:text-white">Key:
-                  <select className="border rounded px-2 py-1 bg-white text-gray-900 dark:bg-gray-800 dark:text-white" value={inputKey} onChange={e => setInputKey(e.target.value)}>
-                    <option value="">Select</option>
-                    {presentKeys.map(k => <option key={k} value={k}>{k}</option>)}
-                  </select>
+                  <input
+                    type="number"
+                    className="border rounded px-2 py-1 bg-white text-gray-900 dark:bg-gray-800 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                    value={inputKey}
+                    onChange={e => setInputKey(e.target.value)}
+                    placeholder="Enter key"
+                  />
                 </label>
                 <button type="submit" className="px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600">containsKey()</button>
               </form>
@@ -369,75 +405,51 @@ const LinkedHashMapVisualizer: React.FC<LinkedHashMapVisualizerProps> = ({ dark,
               <button className="px-3 py-1 rounded bg-blue-500 text-white hover:bg-blue-600" onClick={handleValues}>values()</button>
             )}
           </div>
-          {/* Status/Message Area */}
-          {message && (
-            <p className="mt-2 text-sm text-gray-600 text-center animate-fade-in dark:text-gray-200">{message}</p>
-          )}
-          {operation === 'put' && inputKey !== '' && !isNaN(Number(inputKey)) && (
-            <div className="mt-1 text-xs text-blue-700 dark:text-blue-200">
-              <div>Sample Hash Function: (sum of digits % 10)</div>
-              <div>({inputKey.split('').join(' + ')}) % 10 = {sumOfDigits(Number(inputKey)) % 10}</div>
-            </div>
-          )}
-          {/* Linked List */}
-          <div className="flex flex-col items-center mt-6 w-full">
-            <div className="flex flex-row items-center gap-4 w-full justify-start overflow-x-auto whitespace-nowrap scrollbar-thin scrollbar-thumb-blue-200 scrollbar-track-blue-50 pl-4" ref={linkedListContainerRef}>
-              {linkedList.length === 0 ? (
-                <div className="flex flex-col items-center">
-                  <div className="border border-black dark:border-white rounded w-24 h-12 flex flex-row items-stretch bg-white dark:bg-gray-800">
-                  <div className="flex-1 flex items-center justify-center border-r border-black dark:border-white text-xs text-black dark:text-white">null</div>
-                    <div className="flex-1 flex items-center justify-center bg-blue-50 dark:bg-gray-700 font-bold text-sm border-r border-black dark:border-white text-black dark:text-white"> </div>
-                    <div className="flex-1 flex items-center justify-center text-xs text-black dark:text-white">null</div>
-                  </div>
-                </div>
-              ) : (
-                linkedList.map((entry, idx) => (
-                  <React.Fragment key={entry.id}>
-                    <div className="flex flex-col items-center">
-                      <div
-                        className={`border border-black dark:border-white rounded min-w-[8rem] h-14 flex flex-row items-stretch bg-white dark:bg-gray-800 ${highlightedId === entry.id && highlightColor === 'yellow' ? 'bg-yellow-200 dark:bg-yellow-700 transition-colors duration-500' : ''} ${highlightedId === entry.id && highlightColor === 'red' ? 'border-4 border-red-500 transition-colors duration-500' : ''} ${highlightedId === entry.id && highlightColor === 'green' ? 'border-4 border-green-500 transition-colors duration-500' : ''}`}
-                        ref={idx === linkedList.length - 1 ? lastNodeRef : undefined}
-                      >
-                        <div className="flex-1 flex items-center justify-center border-r border-black dark:border-white text-xs text-black dark:text-white">
-                          {idx === 0 ? <span className="text-black dark:text-white">null</span> : 'Prev'}
-                        </div>
-                        <div className="flex-1 flex-grow min-w-21 flex items-center justify-center bg-blue-100 dark:bg-blue-900 font-bold text-sm border-r border-black dark:border-white px-4 py-2 break-words text-black dark:text-white">
-                          {entry.key} → "{entry.value}"
-                        </div>
-                        <div className="flex-1 flex items-center justify-center text-xs text-black dark:text-white">
-                          {idx === linkedList.length - 1 ? <span className="text-black dark:text-white">null</span> : 'Next'}
-                        </div>
-                      </div>
-                    </div>
-                    {idx < linkedList.length - 1 && (
-                      <span className="text-2xl mx-2 text-gray-500 dark:text-gray-200">⇄</span>
-                    )}
-                  </React.Fragment>
-                ))
-              )}
-            </div>
-            <div className="mt-2 text-sm text-gray-500 dark:text-gray-200">Doubly Linked List (insertion order)</div>
+          {/* Message/status area below hash function */}
+          <div
+            className="text-sm text-gray-600 text-center animate-fade-in dark:text-gray-200 transition-all duration-300 mb-2"
+            style={{ visibility: message ? 'visible' : 'hidden', minHeight: '2.2em' }}
+          >
+            {message}
           </div>
           {/* Buckets below */}
-          <div className="flex flex-row gap-3 justify-center mt-10 w-full flex-wrap">
-            {buckets.map((bucket, i) => (
-              <div key={i} className="flex flex-col items-center w-[120px] min-h-[80px] p-2 bg-white dark:bg-gray-800 border-2 border-black dark:border-white rounded">
+          <div className="flex flex-row gap-3 justify-center w-full flex-wrap">
+            {buckets.map((bucket, i) => {
+              let highlightStyle = {};
+              let highlightClass = '';
+              if (highlightedBucket === i && bucketHighlightColor) {
+                if (bucketHighlightColor === 'yellow') {
+                  highlightStyle = { backgroundColor: '#FEF08A' };
+                } else if (bucketHighlightColor === 'green') {
+                  highlightClass = 'border-4 border-green-500 !border-green-500 border-4';
+                  highlightStyle = { borderColor: '#22c55e' };
+                } else if (bucketHighlightColor === 'red') {
+                  highlightClass = 'border-4 border-red-500 !border-red-500 border-4';
+                  highlightStyle = { borderColor: '#ef4444' };
+                }
+              }
+              return (
+                <div
+                  key={i}
+                  className={`flex flex-col items-center w-[120px] min-h-[80px] p-2 bg-white dark:bg-gray-800 border-2 border-black dark:border-white rounded transition-all duration-300 ${highlightClass}`}
+                  style={highlightStyle}
+                >
                   <div className="font-semibold border-b border-black dark:border-white w-full text-center py-1 bg-gray-100 dark:bg-gray-700 text-xs text-gray-900 dark:text-white">Bucket {i}</div>
-                <div className="flex-1 flex flex-col items-center justify-start gap-y-2 w-full mt-2">
+                  <div className="flex-1 flex flex-col items-center justify-start gap-y-2 w-full mt-2">
                     {bucket.length === 0 ? (
                       <span className="text-black-300 dark:text-gray-500 text-xs">(empty)</span>
                     ) : (
                       bucket.map(entry => (
-                      <div key={entry.id} className="border rounded px-2 py-1 bg-blue-100 dark:bg-blue-900 text-sm truncate w-full text-gray-900 dark:text-white">
-                        {entry.key} → "{entry.value}"
+                        <div key={entry.id} className="border rounded px-2 py-1 bg-blue-100 dark:bg-blue-900 text-sm truncate w-full text-gray-900 dark:text-white">
+                          {entry.key} → "{entry.value}"
                         </div>
                       ))
                     )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
-          
         </div>
       </div>
     </div>
