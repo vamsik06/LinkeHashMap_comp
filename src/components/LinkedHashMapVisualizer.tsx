@@ -287,7 +287,7 @@ const LinkedHashMapVisualizer: React.FC<LinkedHashMapVisualizerProps> = ({ dark,
   const presentKeys = linkedList.map(e => e.key);
 
   return (
-    <div className={`fixed inset-0 flex items-center justify-center${dark ? ' dark' : ''} bg-gray-100 dark:bg-gray-900`}>
+    <div className={`fixed inset-0 flex items-center justify-center${dark ? ' dark' : ''} bg-white-100 dark:bg-black-900`}>
       <div
         className="relative flex flex-col items-center border border-black dark:border-white justify-center w-full max-w-[580px] max-h-[650px] min-h-[650px] bg-white dark:bg-gray-900 rounded-xl shadow-xl overflow-auto"
         style={{ height: 650 }}
